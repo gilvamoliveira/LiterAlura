@@ -1,79 +1,94 @@
-LiterAlura
------
+# LiterAlura
 
-*Descrição*
+Catálogo de livros em Java que consulta a API pública [Gutendex](https://gutendex.com/) e grava livros e autores em PostgreSQL. Projeto do desafio final do Oracle Next Education (ONE), com foco em consumo de API, JPA e aplicação de console organizada em camadas.
 
-Projeto desenvolvido como parte do programa ONE (Oracle Next Education) em parceria com a Alura, com o objetivo de praticar conceitos de Java, Spring Boot, consumo de APIs e persistência de dados em banco relacional.
-O LiterAlura é um catálogo de livros que consome dados da API pública Gutendex, permitindo buscar livros por título e armazená-los em um banco de dados. Após o cadastro, é possível realizar consultas diretamente no banco de dados sobre livros e autores.
+## Como funciona
 
-Este projeto foi desenvolvido como desafio prático dentro da formação ONE - Oracle Next Education, reforçando habilidades essenciais para desenvolvimento backend com Java e Spring.
+A aplicação sobe como um `CommandLineRunner`. Por padrão o menu fica desligado para não travar execuções em segundo plano e testes; com `--app.menu.enabled=true` ele abre no terminal:
 
--------
+```text
+1 - Buscar livro pelo título
+2 - Listar livros registrados
+3 - Listar autores
+4 - Listar autores vivos em determinado ano
+5 - Listar livros por idioma
+0 - Sair
+```
 
-*Funcionalidades*
+Ao buscar por título, a aplicação consulta o Gutendex, converte o JSON em DTOs e salva o primeiro resultado (com o primeiro autor informado pela API).
 
-Buscar um livro pelo título e salvar informações de livro e autor no banco de dados.
+## Stack
 
-Listar todos os livros cadastrados.
+- Java 17
+- Spring Boot 3
+- Spring Data JPA / Hibernate
+- PostgreSQL
+- Jackson
+- Maven
 
-Listar todos os autores cadastrados.
+## Requisitos
 
-Listar livros por idioma.
+- JDK 17
+- PostgreSQL com um banco criado (o padrão é `SpringAlura`)
 
-Possibilidade de expansão para consultas adicionais de autores por ano.
+## Configuração
 
-------
+As credenciais vêm de variáveis de ambiente:
 
-*Tecnologias*
+| Variável | Obrigatória | Padrão |
+| --- | --- | --- |
+| `DB_URL` | não | `jdbc:postgresql://localhost:5432/SpringAlura` |
+| `DB_USERNAME` | sim | — |
+| `DB_PASSWORD` | sim | — |
 
-Java 17+
+No PowerShell:
 
-Spring Boot 3+
-
-Spring Data JPA
-
-H2 / MySQL / PostgreSQL (configurável)
-
-Maven
-
-------
-
-*Objetivo do Projeto*
-
-Este projeto foi desenvolvido com foco em praticar:
-
-Consumo de APIs externas
-
-Persistência de dados com JPA
-
-Integração com banco de dados relacional
-
-Estruturação de aplicações backend com Spring Boot
-
-------
-
-*Configuração*
-
-As credenciais não ficam no código. Defina as variáveis de ambiente antes de executar:
-
-DB_URL (opcional, padrão: jdbc:postgresql://localhost:5432/SpringAlura)
-
-DB_USERNAME (obrigatória)
-
-DB_PASSWORD (obrigatória)
-
-Exemplo no PowerShell:
-
+```powershell
 $env:DB_USERNAME="postgres"
-
 $env:DB_PASSWORD="sua-senha"
+```
 
-mvn spring-boot:run
+## Como executar
 
-O menu interativo é opcional e fica desativado por padrão para não bloquear testes e execuções em segundo plano. Para habilitá-lo:
-
+```bash
+cd SpringAlura
 mvn spring-boot:run -Dspring-boot.run.arguments=--app.menu.enabled=true
+```
+
+O `spring.jpa.hibernate.ddl-auto=update` cria/atualiza as tabelas na primeira execução. Em produção, o ideal é trocar isso por migrations versionadas.
+
+## Testes
+
+```bash
+cd SpringAlura
+mvn test
+```
+
+Os testes usam H2 em memória (`src/test/resources/application.properties`), então não precisam de PostgreSQL. Hoje a suíte tem apenas o teste de carregamento de contexto; as consultas e a integração com o Gutendex não estão cobertas.
+
+## Estrutura
+
+```text
+SpringAlura/src/main/java/com/example/SpringAlura/
+├── model/         Livro, Autor
+├── dto/           DadosLivro, DadosAutor, DadosResultado
+├── repository/    LivroRepository, AutorRepository
+├── service/       ConsumoApi, ConverteDados, LivroService
+└── principal/     Principal (menu e fluxo do console)
+```
+
+## Limitações
+
+- Sem interface web: a saída é o terminal.
+- A busca depende da disponibilidade e do formato do Gutendex.
+- Buscas repetidas podem duplicar livro e autor: não há verificação de registro existente antes de salvar.
+- `ddl-auto=update` em vez de migrations.
+- Cobertura de testes restrita ao contexto da aplicação.
+
+## Licença
+
+MIT. Veja [LICENSE](LICENSE).
 
 ---
 
-Autor: Gilvam Oliveira · [LinkedIn](https://www.linkedin.com/in/gilvam-oliveira/)
+Autor: Gilvam Oliveira — [LinkedIn](https://www.linkedin.com/in/gilvam-oliveira/)
